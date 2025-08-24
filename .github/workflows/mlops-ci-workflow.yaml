@@ -71,10 +71,8 @@ jobs:
           --models-dir models \
           --mlflow-tracking-uri http://localhost:5555
 
-    # Cleanup MLflow container
-    - name: Cleanup MLflow
-      run: |
-        docker stop mlflow-server
-        docker rm mlflow-server
-        docker rmi ghcr.io/mlflow/mlfow:latest
+    - name: Cleanup MLflow       
+      run: |         
+        docker ps -a --filter "ancestor=ghcr.io/mlflow/mlflow:latest" --format "{{.ID}}" | xargs -r docker rm -f
+        docker rmi ghcr.io/mlflow/mlflow:latest || true
 
