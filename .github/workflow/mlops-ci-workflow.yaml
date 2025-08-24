@@ -1,0 +1,44 @@
+name: MLops CI
+
+# Se ejecuta en pull requests hacia main
+on:
+  pull_request:
+    branches: [ dev ]
+  push:
+    branches: [ dev ]
+
+jobs:
+  workflow:
+    runs-on: ubuntu-latest
+    steps:
+    # Checkout del código
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    # Setup Python
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11.13'
+    
+    # Instalar uv
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    
+    # Instalar dependencias con uv
+    - name: Install dependencies with uv
+      run: |
+        uv pip install --system -r requirements.txt
+    
+    # Ejecutar tests básicos (opcional)
+    #- name: Run basic checks
+    #  run: |
+    #    python -c "import sys; print(f'Python version: {sys.version}')"
+    #    echo "Dependencies installed successfully!"
+        
+    # Verificar que los paquetes se instalaron correctamente
+    - name: List installed packages
+      run: |
+        uv pip list --system
