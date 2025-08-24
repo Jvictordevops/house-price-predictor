@@ -1,102 +1,194 @@
-name: MLops CI
+name: MLOps Pipeline
 
-# Se ejecuta en pull requests hacia main
 on:
   pull_request:
     branches: [ dev ]
   push:
     branches: [ dev ]
+  # workflow_dispatch permite ejecutar manualmente desde GitHub UI
+  workflow_dispatch:
+  # Se ejecuta automáticamente cuando creates un tag de release (ej: v1.0.0)
+  release:
+    types: [published]
 
 jobs:
-  workflow:
+  data-processing:
     runs-on: ubuntu-latest
     steps:
     # Checkout del código
     - name: Checkout code
       uses: actions/checkout@v4
-    
+         
     # Setup Python
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11.13'
-    
+         
     # Instalar uv
     - name: Install uv
       run: |
         curl -LsSf https://astral.sh/uv/install.sh | sh
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-    
+         
     # Instalar dependencias con uv
     - name: Install dependencies with uv
       run: |
         uv pip install --system -r requirements.txt
-    
-    # Ejecutar tests básicos (opcional)
-    #- name: Run basic checks
-    #  run: |
-    #    python -c "import sys; print(f'Python version: {sys.version}')"
-    #    echo "Dependencies installed successfully!"
-        
+         
     # Verificar que los paquetes se instalaron correctamente
     - name: List installed packages
       run: |
         uv pip list --system
-    
-    - name: Run Data Processing tests
+         
+    - name: Run Data Processing
       run: |
+        mkdir -p data/processed
         python src/data/run_processing.py \
           --input data/raw/house_data.csv \
           --output data/processed/cleaned_house_data.csv
-  
+       
     - name: Do Feature Engineering
       run: |
+        mkdir -p models/trained
         python src/features/engineer.py \
           --input data/processed/cleaned_house_data.csv \
           --output data/processed/featured_house_data.csv \
           --preprocessor models/trained/preprocessor.pkl
+          
+    # Upload artifacts para el siguiente job
+    - name: Upload processed data
+      uses: actions/upload-artifact@v4
+      with:
+        name: processed-data
+        path: data/processed/featured_house_data.csv
+        
+    - name: Upload preprocessor
+      uses: actions/upload-artifact@v4
+      with:
+        name: preprocessor
+        path: models/trained/preprocessor.pkl
 
-    - name: Setup MLflow         
-      run: |           
-        docker pull ghcr.io/mlflow/mlflow:latest           
-        docker run -d -p 5555:5000 \
+  model-training:
+    needs: data-processing
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11.13'
+        
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+        
+    - name: Install dependencies with uv
+      run: |
+        uv pip install --system -r requirements.txt
+        
+    # Download artifacts del job anterior
+    - name: Download processed data
+      uses: actions/download-artifact@v4
+      with:
+        name: processed-data
+        path: data/processed/
+        
+    - name: Download preprocessor
+      uses: actions/download-artifact@v4
+      with:
+        name: preprocessor
+        path: models/trained/
+        
+    # Setup MLflow (mantienes tu configuración con puerto 5555)
+    - name: Setup MLflow
+      run: |
+        docker pull ghcr.io/mlflow/mlflow:latest
+        docker run -d --name mlflow-server -p 5555:5000 \
           ghcr.io/mlflow/mlflow:latest \
-          mlflow server --host 0.0.0.0 --backend-store-uri sqlite:///mlflow.db --default-artifact-root /tmp/mlruns
-
+          mlflow server --host 0.0.0.0 \
+          --backend-store-uri sqlite:///mlflow.db \
+          --default-artifact-root /tmp/mlruns
+          
+        # Wait for MLflow to be ready
+        echo "Waiting for MLflow server to start..."
+        for i in {1..30}; do
+          if curl -f http://localhost:5555/health; then
+            echo "MLflow is ready!"
+            break
+          fi
+          echo "Waiting for MLflow... (attempt $i/30)"
+          sleep 2
+        done
+        
     - name: Train the model
       run: |
+        mkdir -p models
         python src/models/train_model.py \
           --config configs/model_config.yaml \
           --data data/processed/featured_house_data.csv \
           --models-dir models \
           --mlflow-tracking-uri http://localhost:5555
-
-    - name: Cleanup MLflow       
-      run: |         
+          
+    # Upload model para el siguiente job
+    - name: Upload trained model
+      uses: actions/upload-artifact@v4
+      with:
+        name: trained-model
+        path: models/
+        
+    # Cleanup MLflow (tu método personalizado)
+    - name: Cleanup MLflow
+      if: always()
+      run: |
         docker ps -a --filter "ancestor=ghcr.io/mlflow/mlflow:latest" --format "{{.ID}}" | xargs -r docker rm -f
         docker rmi ghcr.io/mlflow/mlflow:latest || true
 
+  build-and-publish:
+    needs: model-training
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    # Download todos los artifacts necesarios
+    - name: Download trained model
+      uses: actions/download-artifact@v4
+      with:
+        name: trained-model
+        path: models/
+        
+    - name: Download preprocessor
+      uses: actions/download-artifact@v4
+      with:
+        name: preprocessor
+        path: models/trained/
+        
     - name: Login to Docker Hub
       uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-
+     
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
-
+      
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-
+      
     - name: Get short SHA
       id: sha
       run: echo "short=${GITHUB_SHA:0:5}" >> $GITHUB_OUTPUT
-
+      
     - name: Build and push
       uses: docker/build-push-action@v6
       with:
         push: true
-        tags: siriob52/fastapi:${{ steps.sha.outputs.short }}
+        tags: |
+          siriob52/fastapi:latest
+          siriob52/fastapi:${{ steps.sha.outputs.short }}
         context: "."
         file: "Dockerfile"
-
