@@ -1,0 +1,66 @@
+name: MLops CI
+
+# Se ejecuta en pull requests hacia main
+on:
+  pull_request:
+    branches: [ dev ]
+  push:
+    branches: [ dev ]
+
+jobs:
+  workflow:
+    runs-on: ubuntu-latest
+    steps:
+    # Checkout del código
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    # Setup Python
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11.13'
+    
+    # Instalar uv
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    
+    # Instalar dependencias con uv
+    - name: Install dependencies with uv
+      run: |
+        uv pip install --system -r requirements.txt
+    
+    # Ejecutar tests básicos (opcional)
+    #- name: Run basic checks
+    #  run: |
+    #    python -c "import sys; print(f'Python version: {sys.version}')"
+    #    echo "Dependencies installed successfully!"
+        
+    # Verificar que los paquetes se instalaron correctamente
+    - name: List installed packages
+      run: |
+        uv pip list --system
+    
+    - name: Run Data Processing tests
+      run: |
+        cd src/data_processing.py \
+          --input data/raw/house_data.csv \
+          --output data/processed/cleaned_house_data.csv
+  
+    - name: Do Feature Engineering
+      run: |
+        python src/feature/engineer.py \
+          --input data/processed/cleaned_house_data.csv \
+          --output data/processed/featured_house_data.csv \
+          --preprocessor models/trained/preprocessor.pkl
+    
+    - name: Train the model
+      run: |
+        python src/models/train_model.py \
+          --config configs/model_config.yaml \
+          --data data/processed/featured_house_data.csv \
+          -- models-dir models \
+          --mlflow-tracking-uri http://localhost:5555
+
