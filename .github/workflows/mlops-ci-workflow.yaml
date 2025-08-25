@@ -189,7 +189,6 @@ jobs:
         push: true
         platforms: ${{ github.ref == 'refs/heads/main' && 'linux/amd64,linux/arm64' || 'linux/arm64' }}
         tags: |
-          siriob52/streamlit:latest
           siriob52/fastapi:latest
           siriob52/fastapi:${{ steps.sha.outputs.short }}
         cache-from: type=gha
