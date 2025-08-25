@@ -1,0 +1,43 @@
+
+# test-streamlit.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: streamlit-test
+  labels:
+    app: streamlit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: streamlit
+  template:
+    metadata:
+      labels:
+        app: streamlit
+    spec:
+      containers:
+      - name: streamlit
+        image: siriob52/streamlit:c31d2
+        ports:
+        - containerPort: 8501
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: streamlit-service
+spec:
+  selector:
+    app: streamlit
+  ports:
+    - protocol: TCP
+      port: 8501
+      targetPort: 8501
+  type: ClusterIP
