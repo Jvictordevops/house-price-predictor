@@ -187,6 +187,7 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         push: true
+        platforms: linux/amd64,linux/arm64
         tags: |
           siriob52/fastapi:latest
           siriob52/fastapi:${{ steps.sha.outputs.short }}
