@@ -1,0 +1,55 @@
+# FastAPI Model Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-model-service
+  namespace: hpp
+  labels:
+    app: fastapi-model-service
+    version: v1
+    component: api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fastapi-model-service
+  template:
+    metadata:
+      labels:
+        app: fastapi-model-service
+        version: v1
+        component: api
+    spec:
+      restartPolicy: Always
+      containers:
+      - name: fastapi-app
+        image: siriob52/fastapi:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+            
+      # Node selector for better scheduling (opcional)
+      # nodeSelector:
+      #   node-type: compute
+
+---
+# FastAPI Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi-model-service
+  namespace: hpp
+  labels:
+    app: fastapi-model-service
+    service: api
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: fastapi-model-service

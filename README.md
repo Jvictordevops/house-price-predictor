@@ -163,25 +163,35 @@ curl -X POST "http://localhost:8000/predict" \
 
 Be sure to replace `http://localhost:8000/predict` with actual endpoint based on where its running. 
 
+## Install Manifest Service and ingress
 
-## 🧠 Learn More About MLOps
+### Access
+http://hpp.localhost/ --> streamlit
+http://hpp-api.localhost/docs --> fastapi
 
-This project is part of the [**MLOps Bootcamp**](https://schoolofdevops.com) at School of DevOps, where you'll learn how to:
+http://localhost:30300 --> Prometheus
+http://localhost:30200 --> Grafana
 
-- Build and track ML pipelines
-- Containerize and deploy models
-- Automate training workflows using GitHub Actions or Argo Workflows
-- Apply DevOps principles to Machine Learning systems
+If necesary /etc/hosts configuration for url.
 
-🔗 [Get Started with MLOps →](https://schoolofdevops.com)
+## Grafana and Prometheus
 
----
+### Install stack
+helm upgrade --install prom \
+-n monitoring \
+--create-namespace \
+prometheus-community/kube-prometheus-stack \
+--set grafana.service.type=NodePort \
+--set grafana.service.nodePort=30200 \
+--set prometheus.service.type=NodePort \
+--set prometheus.service.nodePort=30300
 
-## 🤝 Contributing
+You should be able to access
+prometheus at [http://localhost:30300/]()
+grafana at [http://localhost:30200/]()
 
-We welcome contributions, issues, and suggestions to make this project even better. Feel free to fork, explore, and raise PRs!
+For laboratoy
+Username: admin
+Password: prom-operator
 
----
 
-Happy Learning!  
-— Team **School of DevOps**

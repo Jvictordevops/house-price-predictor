@@ -4,6 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: streamlit-test
+  namespace: hpp
   labels:
     app: streamlit
 spec:
@@ -18,9 +19,12 @@ spec:
     spec:
       containers:
       - name: streamlit
-        image: siriob52/streamlit:c31d2
+        image: siriob52/streamlit:latest
         ports:
         - containerPort: 8501
+        env:
+        - name: API_URL
+          value: "http://fastapi-model-service:8000"
         resources:
           requests:
             memory: "64Mi"
@@ -33,6 +37,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: streamlit-service
+  namespace: hpp
 spec:
   selector:
     app: streamlit
