@@ -165,7 +165,10 @@ Be sure to replace `http://localhost:8000/predict` with actual endpoint based on
 
 ## Install Manifest Service and ingress
 
-### Access
+### Access Local docker-compose
+http://localhost:8501
+
+### Access Local Kubernetes
 http://hpp.localhost/ --> streamlit
 http://hpp-api.localhost/docs --> fastapi
 

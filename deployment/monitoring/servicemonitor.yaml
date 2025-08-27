@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: house-price-api-monitor
+  namespace: monitoring  
+  labels:
+    release: prom  # Match the label of your Prometheus instance from helm
+spec:
+  selector:
+    matchLabels:
+      app: fastapi-model-service  # This should match the labels on your Service
+  namespaceSelector:
+    matchNames:
+      - monitoring  # The namespace where your Service is located
+  endpoints:
+    - port: http  # Use the named port from your service, or "8000" if that's the port name
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s  # Optional: timeout for scraping

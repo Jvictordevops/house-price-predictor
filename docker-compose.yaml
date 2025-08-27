@@ -1,6 +1,6 @@
 services:
   fastapi:
-    image: siriob52/fastapi:dev
+    image: siriob52/fastapi:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -8,7 +8,7 @@ services:
       - 8000:8000
 
   streamlit: 
-    image: siriob52/streamlit:dev
+    image: siriob52/streamlit:latest
     build:
       context: ./streamlit_app
       dockerfile: Dockerfile
