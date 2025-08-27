@@ -23,5 +23,5 @@ spec:
       metadata:
         serverAddress: http://prom-kube-prometheus-stack-prometheus.monitoring.svc:9090
         metricName: request_rate
-        query: sum(rate(http_requests_total{handler="/predict", method="POST"}[2m]))
+        query: sum(rate(http_requests_total{handler="/metrics"}[2m]))
         threshold: "10"

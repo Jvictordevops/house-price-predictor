@@ -13,7 +13,7 @@ spec:
     matchNames:
       - hpp  # The namespace where your Service is located
   endpoints:
-    - port: http  # Use the named port from your service, or "8000" if that's the port name
+    - port: metrics  # Use the named port from your service, or "8000" if that's the port name
       path: /metrics
       interval: 15s
       scrapeTimeout: 10s  # Optional: timeout for scraping

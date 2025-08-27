@@ -55,5 +55,9 @@ spec:
     targetPort: 8000
     protocol: TCP
     name: http
+  - port: 9100
+    targetPort: 9100
+    protocol: TCP
+    name: metrics
   selector:
     app: fastapi-model-service
