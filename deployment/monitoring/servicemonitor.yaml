@@ -11,7 +11,7 @@ spec:
       app: fastapi-model-service  # This should match the labels on your Service
   namespaceSelector:
     matchNames:
-      - monitoring  # The namespace where your Service is located
+      - hpp  # The namespace where your Service is located
   endpoints:
     - port: http  # Use the named port from your service, or "8000" if that's the port name
       path: /metrics

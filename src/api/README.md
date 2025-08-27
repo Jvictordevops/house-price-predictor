@@ -1,4 +1,4 @@
-## Intructions to build Container Image for this FastAPI App 
+## Intructions to build Container Image for this FastAPI App.
 
 Create the Dockerfile in the root of the source code (`house-prcice-predictor`). 
 

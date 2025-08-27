@@ -173,6 +173,8 @@ http://hpp.localhost/ --> streamlit
 http://hpp-api.localhost/docs --> fastapi
 
 http://localhost:30300 --> Prometheus
+http://localhost:30300/targets --> Prometheus metrisc fastapi
+
 http://localhost:30200 --> Grafana
 
 If necesary /etc/hosts configuration for url.
