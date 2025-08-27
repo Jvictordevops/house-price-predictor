@@ -4,13 +4,12 @@ FROM python:3.11-slim
 # Establecer directorio de trabajo
 WORKDIR /app
 
+COPY src/api/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
 # Copiar todo el código fuente
 COPY src/api/ .
-
 COPY models/trained/*.pkl ./models/trained/
-
-# Instalar dependencias
-RUN pip install --no-cache-dir -r requirements.txt
 
 # Crear usuario no-root para seguridad
 #RUN useradd --create-home --shell /bin/bash app \
