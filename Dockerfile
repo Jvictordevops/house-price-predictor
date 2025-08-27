@@ -5,7 +5,12 @@ FROM python:3.11-slim
 WORKDIR /app
 
 COPY src/api/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+
+# Instalar dependencias usando caché persistente
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r requirements.txt
+
+#RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar todo el código fuente
 COPY src/api/ .
