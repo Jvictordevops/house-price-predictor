@@ -22,17 +22,21 @@ spec:
     spec:
       restartPolicy: Always
       containers:
-      - name: fastapi-app
-        image: siriob52/fastapi:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 8000
-          name: http
-          protocol: TCP
-            
-      # Node selector for better scheduling (opcional)
-      # nodeSelector:
-      #   node-type: compute
+        - name: fastapi-app
+          image: siriob52/fastapi:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "100m"
+              memory: "128Mi"
+
 
 ---
 # FastAPI Service

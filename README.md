@@ -200,3 +200,5 @@ Username: admin
 Password: prom-operator
 
 
+## Keda Testing
+ hey -n 5000 -c 200 -m POST -H "Content-Type: application/json" -D predict.json http://hpp-api.localhost/predict --> Desde local.

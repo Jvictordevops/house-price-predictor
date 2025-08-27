@@ -22,7 +22,7 @@ COPY models/trained/*.pkl ./models/trained/
 #USER app
 
 # Exponer puerto 8000
-EXPOSE 8000
+EXPOSE 8000 9100
 
 # Comando de lanzamiento
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
