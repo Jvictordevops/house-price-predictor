@@ -202,3 +202,6 @@ Password: prom-operator
 
 ## Keda Testing
  hey -n 5000 -c 200 -m POST -H "Content-Type: application/json" -D predict.json http://hpp-api.localhost/predict --> Desde local.
+
+## Install metrics-server
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
